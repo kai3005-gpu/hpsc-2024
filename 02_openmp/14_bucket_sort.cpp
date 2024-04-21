@@ -18,19 +18,19 @@ int main() {
 #pragma omp atomic
     bucket[key[i]]++;
   }
-  for (int i=0; i<range; i++)
-    printf("b[%d]=%d,",i,bucket[i]);
-  printf("\n");
 
   std::vector<int> offset(range,0);
-#pragma omp for
+#pragma omp parallel for
   for (int i=1; i<range; i++){
+#pragma omp critical
     offset[i] = offset[i-1] + bucket[i-1];
   }
-#pragma omp for
+
+#pragma omp parallel for
   for (int i=0; i<range; i++) {
     int j = offset[i];
     for (int b=bucket[i]; b>0; b--) {
+#pragma omp critical
       key[j++] = i;
     }
   }
