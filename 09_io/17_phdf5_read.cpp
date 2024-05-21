@@ -7,6 +7,7 @@ using namespace std;
 
 int main (int argc, char** argv) {
   hsize_t dim[2] = {2, 2};
+  hsize_t dim2[2] = {4, 4};
   int mpisize, mpirank;
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &mpisize);
@@ -21,13 +22,17 @@ int main (int argc, char** argv) {
   hsize_t N[ndim];
   H5Sget_simple_extent_dims(globalspace, N, NULL);
   hsize_t NX = N[0], NY = N[1];
-  hsize_t Nlocal[2] = {NX/dim[0], NY/dim[1]};
-  hsize_t offset[2] = {mpirank / dim[0], mpirank % dim[0]};
-  for(int i=0; i<2; i++) offset[i] *= Nlocal[i];
+  hsize_t Nlocal[2] = {NX / dim2[0], NY / dim2[1]}; //2500
+  hsize_t Ninterval[2] = {NX / dim[0], NY / dim[1]}; //5000
   hsize_t count[2] = {1,1};
   hsize_t stride[2] = {1,1};
   hid_t localspace = H5Screate_simple(2, Nlocal, NULL);
-  H5Sselect_hyperslab(globalspace, H5S_SELECT_SET, offset, stride, count, Nlocal);
+  hsize_t offset[2];
+  for(int i=0; i<4; i++){
+    offset[0] = (mpirank / dim[0]) * Nlocal[0] + (i / dim[0]) * Ninterval[0];
+    offset[1] = (mpirank % dim[1]) * Nlocal[1] + (i % dim[1]) * Ninterval[1];
+    H5Sselect_hyperslab(globalspace, (i == 0 ? H5S_SELECT_SET : H5S_SELECT_OR), offset, stride, count, Nlocal);
+  }
   H5Pclose(plist);
   vector<int> buffer(Nlocal[0]*Nlocal[1]);
   plist = H5Pcreate(H5P_DATASET_XFER);
