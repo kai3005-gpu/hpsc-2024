@@ -96,8 +96,8 @@ __global__ void applyBoundaryConditionsUV(float *u, float *v, int nx, int ny) {
 int main(){
     const int nx = 41;
     const int ny = 41;
-    int nt = 3000;
-    int nit = 300;
+    int nt = 500;
+    int nit = 50;
     float dx = 2. / (nx - 1);
     float dy = 2. / (ny - 1);
     float dt = 0.01;
